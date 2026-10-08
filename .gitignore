@@ -1,0 +1,33 @@
+# Dependencies
+node_modules/
+/.pnp
+.pnp.js
+
+# Production & Next.js Builds
+.next/
+out/
+build/
+dist/
+*.tsbuildinfo
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+*.log
+
+# Environment variables
+.env
+.env*.local
+!.env.example
+
+# Local Media Storage (Keep folder structure, ignore uploaded binary blobs)
+storage/raw/*
+!storage/raw/.gitkeep
+storage/outputs/*
+!storage/outputs/.gitkeep
+storage/queue-state.json
+
+# OS files
+.DS_Store
+Thumbs.db

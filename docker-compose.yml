@@ -1,0 +1,77 @@
+version: '3.8'
+
+services:
+  # Distributed Redis Broker for BullMQ Task Queue
+  redis:
+    image: redis:7-alpine
+    container_name: streamforge-redis
+    restart: unless-stopped
+    ports:
+      - '6379:6379'
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  # Next.js Web App & API Gateway
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: streamforge-web
+    restart: unless-stopped
+    ports:
+      - '3000:3000'
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - STORAGE_DRIVER=local
+    volumes:
+      - media_storage:/app/storage
+    depends_on:
+      redis:
+        condition: service_healthy
+
+  # Dedicated Background Transcoder Worker Node
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: streamforge-worker
+    restart: unless-stopped
+    command: ['npm', 'run', 'worker']
+    environment:
+      - NODE_ENV=production
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - STORAGE_DRIVER=local
+    volumes:
+      - media_storage:/app/storage
+    depends_on:
+      redis:
+        condition: service_healthy
+
+  # Optional Local S3 Emulation with MinIO
+  minio:
+    image: minio/minio:latest
+    container_name: streamforge-minio
+    restart: unless-stopped
+    ports:
+      - '9000:9000'
+      - '9001:9001'
+    environment:
+      - MINIO_ROOT_USER=streamadmin
+      - MINIO_ROOT_PASSWORD=streamsecretkey123
+    command: server /data --console-address ":9001"
+    volumes:
+      - minio_data:/data
+
+volumes:
+  redis_data:
+  media_storage:
+  minio_data:
