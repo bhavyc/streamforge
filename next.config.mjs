@@ -10,7 +10,19 @@ const nextConfig = {
   ],
   experimental: {
     agentUpgrade: 'security',
-  }
+  },
+  async rewrites() {
+    return [
+      {
+        source: '/api/.health',
+        destination: '/api/health',
+      },
+      {
+        source: '/healthz',
+        destination: '/api/health',
+      },
+    ];
+  },
 };
 
 export default nextConfig;
