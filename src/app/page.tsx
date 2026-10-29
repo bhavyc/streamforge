@@ -436,7 +436,11 @@ export default function HomePage() {
               return (
                 <button
                   key={t.id}
-                  onClick={() => setSelectedTool(t.id)}
+                  onClick={() => {
+                    setSelectedTool(t.id);
+                    setJobData(null);
+                    setCurrentJobId(null);
+                  }}
                   style={{
                     padding: '14px 10px',
                     borderRadius: '12px',
@@ -905,22 +909,41 @@ export default function HomePage() {
                   }}
                 >
                   <div style={{ fontWeight: 700, fontSize: '15px', marginBottom: '6px' }}>Processing Failed</div>
-                  <div style={{ fontSize: '13px' }}>{jobData.failedReason || 'Something went wrong.'}</div>
-                  <button
-                    onClick={resetAll}
-                    style={{
-                      marginTop: '12px',
-                      padding: '8px 16px',
-                      borderRadius: '8px',
-                      background: 'var(--danger)',
-                      color: '#ffffff',
-                      border: 'none',
-                      cursor: 'pointer',
-                      fontWeight: 600,
-                    }}
-                  >
-                    Try Another File
-                  </button>
+                  <div style={{ display: 'flex', gap: '10px', justifyContent: 'center', marginTop: '14px', flexWrap: 'wrap' }}>
+                    <button
+                      onClick={() => {
+                        setJobData(null);
+                        setCurrentJobId(null);
+                      }}
+                      style={{
+                        padding: '10px 18px',
+                        borderRadius: '8px',
+                        background: 'var(--primary)',
+                        color: '#ffffff',
+                        border: 'none',
+                        cursor: 'pointer',
+                        fontWeight: 700,
+                        fontSize: '13px',
+                      }}
+                    >
+                      🔄 Retry with {TOOLS.find((t) => t.id === selectedTool)?.name}
+                    </button>
+                    <button
+                      onClick={resetAll}
+                      style={{
+                        padding: '10px 18px',
+                        borderRadius: '8px',
+                        background: 'transparent',
+                        border: '1px solid var(--border-color)',
+                        color: 'var(--text-main)',
+                        cursor: 'pointer',
+                        fontWeight: 600,
+                        fontSize: '13px',
+                      }}
+                    >
+                      Choose Different Video
+                    </button>
+                  </div>
                 </div>
               )}
 
