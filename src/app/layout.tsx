@@ -3,20 +3,19 @@ import type { Metadata } from 'next';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'StreamForge | Distributed Video Transcoding & Media Pipeline',
+  title: 'StreamForge Studio | Free Online Video Compressor & MP3 Tools',
   description:
-    'Production-grade asynchronous distributed video transcoding pipeline built with Next.js, BullMQ, Redis, FFmpeg, and S3-compatible cloud storage.',
+    'Free online video tools to compress videos for WhatsApp & Email, extract MP3 audio, trim clips, mute background noise, and convert video formats. 100% private, no watermark.',
   keywords: [
-    'video transcoding',
-    'ffmpeg',
-    'bullmq',
-    'redis message queue',
-    'asynchronous processing',
-    'distributed systems',
-    'nextjs',
-    'hls streaming',
+    'video compressor',
+    'whatsapp video compressor',
+    'video to mp3',
+    'trim video online',
+    'mute video',
+    'change video speed',
+    'video converter',
+    'free online video editor',
   ],
-  authors: [{ name: 'Cloud & Backend Media Systems' }],
 };
 
 export default function RootLayout({
