@@ -1,18 +1,23 @@
 import { NextResponse } from 'next/server';
-import { getQueueMetrics } from '@/lib/queue';
+import { getQueueMetrics, isBullMQ } from '@/lib/queue';
 import { CONFIG } from '@/config/env';
 
 export async function GET() {
   try {
-    const metrics = await getQueueMetrics();
+    const [metrics, hasRedis] = await Promise.all([
+      getQueueMetrics(),
+      isBullMQ(),
+    ]);
     const memUsage = process.memoryUsage();
 
     return NextResponse.json({
       success: true,
+      redisConnected: hasRedis,
       queue: {
         name: CONFIG.QUEUE_NAME,
         metrics,
         workersActive: 1,
+        engine: metrics.engine,
       },
       system: {
         uptime: process.uptime(),

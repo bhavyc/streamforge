@@ -32,9 +32,17 @@ export const queueEvents = new QueueEventEmitter();
  * Check if connected Redis server supports BullMQ (version >= 5.0.0)
  */
 export async function checkRedisBullMQCompatibility(): Promise<boolean> {
+  // If in production and REDIS_HOST is either empty or points to localhost/127.0.0.1, fallback immediately
+  if (process.env.NODE_ENV === 'production' && (!CONFIG.REDIS_HOST || CONFIG.REDIS_HOST === '127.0.0.1' || CONFIG.REDIS_HOST === 'localhost')) {
+    return false;
+  }
+
   try {
     const redis = getRedisClient();
-    const info = await redis.info('server');
+    const info = await Promise.race([
+      redis.info('server'),
+      new Promise<string>((_, reject) => setTimeout(() => reject(new Error('timeout')), 2500)),
+    ]);
     const match = info.match(/redis_version:([0-9.]+)/);
     if (match && match[1]) {
       const major = parseInt(match[1].split('.')[0], 10);

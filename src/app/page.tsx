@@ -58,6 +58,7 @@ export default function HomePage() {
   const [selectedResolution, setSelectedResolution] = useState<string>('720p');
   const [recentJobs, setRecentJobs] = useState<any[]>([]);
   const [queueMetrics, setQueueMetrics] = useState<any>({ waiting: 0, active: 0, completed: 0, failed: 0 });
+  const [redisConnected, setRedisConnected] = useState<boolean>(false);
   const [logs, setLogs] = useState<string[]>([]);
   const [showArchModal, setShowArchModal] = useState(false);
   const [dragActive, setDragActive] = useState(false);
@@ -83,6 +84,7 @@ export default function HomePage() {
 
       if (statsJson.success) {
         setQueueMetrics(statsJson.queue.metrics);
+        setRedisConnected(Boolean(statsJson.redisConnected));
       }
       if (jobsJson.success) {
         setRecentJobs(jobsJson.jobs);
@@ -360,9 +362,11 @@ export default function HomePage() {
                 fontWeight: 500,
               }}
             >
-              <HardDrive size={14} color="var(--accent)" />
-              <span style={{ color: 'var(--text-muted)' }}>Redis:</span>
-              <span style={{ color: 'var(--accent)', fontWeight: 600 }}>Connected (6379)</span>
+              <HardDrive size={14} color={redisConnected ? 'var(--accent)' : 'var(--success)'} />
+              <span style={{ color: 'var(--text-muted)' }}>Queue Engine:</span>
+              <span style={{ color: redisConnected ? 'var(--accent)' : 'var(--success)', fontWeight: 600 }}>
+                {redisConnected ? 'Redis BullMQ' : 'Async Worker (Active)'}
+              </span>
             </div>
 
             <button
