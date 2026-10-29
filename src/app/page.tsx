@@ -100,9 +100,33 @@ export default function HomePage() {
     return () => clearInterval(interval);
   }, []);
 
-  // Server-Sent Events (SSE) listener for active job progress
+  // Server-Sent Events (SSE) listener + resilient polling fallback for active job progress
   useEffect(() => {
     if (!currentJobId) return;
+
+    let pollingInterval: NodeJS.Timeout | null = null;
+
+    const pollJobStatus = async () => {
+      try {
+        const res = await fetch(`/api/jobs/${currentJobId}`);
+        const json = await res.json();
+        if (json.success && json.job) {
+          const j = json.job;
+          setJobData(j);
+          if (j.status === 'completed' || j.status === 'failed') {
+            if (pollingInterval) clearInterval(pollingInterval);
+            fetchDashboardStats();
+            if (j.status === 'completed') {
+              addLog(`Transcoding completed successfully for Job: ${j.id}`);
+            } else {
+              addLog(`Job failed: ${j.failedReason || 'Unknown error'}`);
+            }
+          }
+        }
+      } catch {
+        // ignore network poll errors
+      }
+    };
 
     addLog(`Subscribed to real-time telemetry stream for Job ID: ${currentJobId}`);
     const eventSource = new EventSource(`/api/jobs/${currentJobId}/stream`);
@@ -131,12 +155,14 @@ export default function HomePage() {
         }
 
         if (payload.status === 'completed') {
-          addLog(` Transcoding completed successfully for Job: ${payload.id}`);
+          addLog(`Transcoding completed successfully for Job: ${payload.id}`);
           eventSource.close();
+          if (pollingInterval) clearInterval(pollingInterval);
           fetchDashboardStats();
         } else if (payload.status === 'failed') {
-          addLog(` Job failed: ${payload.failedReason || 'Unknown error'}`);
+          addLog(`Job failed: ${payload.failedReason || 'Unknown error'}`);
           eventSource.close();
+          if (pollingInterval) clearInterval(pollingInterval);
           fetchDashboardStats();
         }
       } catch (err) {
@@ -146,10 +172,18 @@ export default function HomePage() {
 
     eventSource.onerror = () => {
       eventSource.close();
+      if (!pollingInterval) {
+        pollingInterval = setInterval(pollJobStatus, 2000);
+      }
     };
+
+    // Safety net interval every 3s in case SSE is stalled
+    const safetyNetInterval = setInterval(pollJobStatus, 3000);
 
     return () => {
       eventSource.close();
+      if (pollingInterval) clearInterval(pollingInterval);
+      clearInterval(safetyNetInterval);
     };
   }, [currentJobId]);
 
