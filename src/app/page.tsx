@@ -65,11 +65,13 @@ export default function HomePage() {
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const terminalEndRef = useRef<HTMLDivElement>(null);
+  const terminalContainerRef = useRef<HTMLDivElement>(null);
 
-  // Auto-scroll logs terminal
+  // Auto-scroll logs inside terminal container only (prevent whole-page jumping)
   useEffect(() => {
-    terminalEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    if (terminalContainerRef.current) {
+      terminalContainerRef.current.scrollTop = terminalContainerRef.current.scrollHeight;
+    }
   }, [logs]);
 
   // Fetch initial queue status and recent jobs
@@ -842,6 +844,7 @@ export default function HomePage() {
               </div>
 
               <div
+                ref={terminalContainerRef}
                 className="terminal-window"
                 style={{
                   height: '160px',
@@ -860,7 +863,6 @@ export default function HomePage() {
                     </div>
                   ))
                 )}
-                <div ref={terminalEndRef} />
               </div>
             </div>
           </div>
