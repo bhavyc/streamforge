@@ -20,11 +20,12 @@ COPY . .
 # Build Next.js production bundle
 RUN npm run build
 
-# Set host binding to 0.0.0.0 for container networks
+# Set host binding to 0.0.0.0 and port 10000 for Render cloud
 ENV HOSTNAME="0.0.0.0"
+ENV PORT=10000
 
-# Expose Next.js & Render ports
-EXPOSE 3000 10000
+# Expose Render default port exclusively
+EXPOSE 10000
 
 # Default command: Web server + Background Worker concurrently
 CMD ["npm", "run", "start:all"]
