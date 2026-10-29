@@ -22,5 +22,5 @@ RUN npm run build
 # Expose Next.js default port
 EXPOSE 3000
 
-# Default command: Web server (can be overridden by docker-compose for worker)
-CMD ["npm", "run", "start"]
+# Default command: Web server + Background Worker concurrently
+CMD ["npm", "run", "start:all"]
