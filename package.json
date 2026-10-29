@@ -8,7 +8,8 @@
     "worker": "tsx src/worker/index.ts",
     "dev:all": "concurrently -n \"WEB,WORKER\" -c \"cyan.bold,magenta.bold\" \"next dev\" \"tsx src/worker/index.ts\"",
     "build": "next build",
-    "start": "next start"
+    "start": "next start",
+    "start:all": "concurrently -n \"WEB,WORKER\" -c \"cyan.bold,magenta.bold\" \"next start\" \"tsx src/worker/index.ts\""
   },
   "keywords": [],
   "author": "",
