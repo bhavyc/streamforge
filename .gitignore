@@ -31,3 +31,7 @@ storage/queue-state.json
 # OS files
 .DS_Store
 Thumbs.db
+
+# Repomix Bundles
+repomix-output.*
+
