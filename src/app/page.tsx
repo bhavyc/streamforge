@@ -212,38 +212,6 @@ export default function HomePage() {
     }
   };
 
-  // 1-Click Demo trigger
-  const handleSampleDemo = async () => {
-    try {
-      setIsUploading(true);
-      addLog('Enqueuing synthetic test sample video for instant demonstration...');
-      const res = await fetch('/api/sample', { method: 'POST' });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Failed to load sample');
-
-      addLog(`Sample video enqueued! BullMQ Job ID: ${data.jobId}`);
-      setCurrentJobId(data.jobId);
-      setJobData({
-        id: data.jobId,
-        status: 'waiting',
-        progress: 0,
-        progressMessage: 'Job queued in Redis, awaiting worker...',
-        data: {
-          jobId: data.jobId,
-          originalFileName: 'test-sample.mp4',
-          rawFilePath: '',
-          uploadedAt: new Date().toISOString(),
-        },
-        timestamp: Date.now(),
-      });
-      fetchDashboardStats();
-    } catch (err: any) {
-      addLog(`[Sample Demo Error]: ${err.message}`);
-      alert(`Sample demo error: ${err.message}`);
-    } finally {
-      setIsUploading(false);
-    }
-  };
 
   // Helper to load a past job for inspection
   const loadJob = async (jobId: string) => {
@@ -540,15 +508,15 @@ export default function HomePage() {
               </div>
 
               {/* Upload CTA */}
-              <div style={{ marginTop: '16px', display: 'flex', gap: '10px' }}>
+              <div style={{ marginTop: '16px' }}>
                 <button
                   id="upload-button"
                   onClick={handleUpload}
                   disabled={!file || isUploading}
                   className="gradient-btn"
                   style={{
-                    flex: 1,
-                    padding: '12px 20px',
+                    width: '100%',
+                    padding: '13px 20px',
                     borderRadius: '10px',
                     fontWeight: 700,
                     fontSize: '14px',
@@ -570,30 +538,6 @@ export default function HomePage() {
                       Dispatch to Transcode Queue
                     </>
                   )}
-                </button>
-                <button
-                  id="sample-demo-button"
-                  onClick={handleSampleDemo}
-                  disabled={isUploading}
-                  type="button"
-                  style={{
-                    padding: '12px 18px',
-                    borderRadius: '10px',
-                    fontWeight: 700,
-                    fontSize: '13px',
-                    background: 'rgba(6, 182, 212, 0.14)',
-                    border: '1px solid rgba(6, 182, 212, 0.35)',
-                    color: '#38bdf8',
-                    cursor: isUploading ? 'not-allowed' : 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: '6px',
-                    transition: 'all 0.2s',
-                  }}
-                >
-                  <Sparkles size={15} color="#38bdf8" />
-                  1-Click Demo
                 </button>
               </div>
             </div>
