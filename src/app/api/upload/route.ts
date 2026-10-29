@@ -3,13 +3,8 @@ import { v4 as uuidv4 } from 'uuid';
 import path from 'path';
 import { StorageService } from '@/lib/storage';
 import { addVideoJob } from '@/lib/queue';
+import { CONFIG } from '@/config/env';
 import { VideoProcessingJobData } from '@/lib/types';
-
-export const config = {
-  api: {
-    bodyParser: false,
-  },
-};
 
 export async function POST(req: NextRequest) {
   try {
@@ -24,7 +19,29 @@ export async function POST(req: NextRequest) {
     }
 
     const originalFileName = file.name || 'uploaded_video.mp4';
-    const extension = path.extname(originalFileName) || '.mp4';
+    const extension = path.extname(originalFileName).toLowerCase() || '.mp4';
+
+    // Validate allowed file extensions
+    if (!CONFIG.ALLOWED_EXTENSIONS.includes(extension)) {
+      return NextResponse.json(
+        {
+          error: `Unsupported file format "${extension}". Allowed formats: ${CONFIG.ALLOWED_EXTENSIONS.join(', ')}`,
+        },
+        { status: 415 }
+      );
+    }
+
+    // Validate maximum file size limit
+    const maxSizeBytes = CONFIG.MAX_FILE_SIZE_MB * 1024 * 1024;
+    if (file.size > maxSizeBytes) {
+      return NextResponse.json(
+        {
+          error: `File size exceeds the limit of ${CONFIG.MAX_FILE_SIZE_MB}MB. Uploaded: ${(file.size / (1024 * 1024)).toFixed(1)}MB.`,
+        },
+        { status: 413 }
+      );
+    }
+
     const jobId = uuidv4();
     const safeFileName = `${jobId}${extension}`;
 

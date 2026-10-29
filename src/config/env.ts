@@ -32,4 +32,10 @@ export const CONFIG = {
   AWS_SECRET_ACCESS_KEY: process.env.AWS_SECRET_ACCESS_KEY || '',
   AWS_S3_BUCKET: process.env.AWS_S3_BUCKET || '',
   AWS_S3_ENDPOINT: process.env.AWS_S3_ENDPOINT || undefined, // For MinIO or LocalStack
+
+  // Production Guards & Policies
+  MAX_FILE_SIZE_MB: parseInt(process.env.MAX_FILE_SIZE_MB || '500', 10),
+  DELETE_RAW_AFTER_TRANSCODE: process.env.DELETE_RAW_AFTER_TRANSCODE === 'true',
+  ALLOWED_EXTENSIONS: ['.mp4', '.mov', '.avi', '.mkv', '.webm', '.flv', '.wmv', '.m4v'],
+  ENABLE_HLS: process.env.ENABLE_HLS === 'true',
 };

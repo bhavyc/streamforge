@@ -58,6 +58,7 @@ export interface JobDetailsResponse {
   failedReason?: string;
   data: VideoProcessingJobData;
   returnvalue?: VideoProcessingResult;
+  result?: VideoProcessingResult;
   timestamp: number;
   processedOn?: number;
   finishedOn?: number;

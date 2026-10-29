@@ -262,7 +262,7 @@ export default function HomePage() {
   };
 
   // Select rendition URL
-  const activeResult: VideoProcessingResult | undefined = jobData?.result;
+  const activeResult: VideoProcessingResult | undefined = jobData?.result || jobData?.returnvalue;
   const activeRenditions: VideoRendition[] = activeResult?.renditions || [];
   const currentRendition =
     activeRenditions.find((r) => r.resolution === selectedResolution) ||

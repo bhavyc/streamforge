@@ -184,6 +184,16 @@ export async function processVideoJob(
 
   const processingTimeMs = Date.now() - startTime;
 
+  // Step 7: Disk Retention & Cleanup (Production Guard)
+  if (CONFIG.DELETE_RAW_AFTER_TRANSCODE && fs.existsSync(rawFilePath)) {
+    try {
+      await fs.promises.unlink(rawFilePath);
+      console.log(`[Worker Cleanup] Purged raw input file to reclaim disk space: ${rawFilePath}`);
+    } catch (cleanupErr: any) {
+      console.warn(`[Worker Cleanup Warning]: Could not delete raw file: ${cleanupErr.message}`);
+    }
+  }
+
   console.log(`[Worker] Finished Job ${jobId} in ${(processingTimeMs / 1000).toFixed(2)}s`);
 
   return {
