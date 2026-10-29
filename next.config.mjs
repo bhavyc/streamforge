@@ -8,7 +8,7 @@ const nextConfig = {
     '@ffprobe-installer/ffprobe'
   ],
   experimental: {
-    // Allows larger file payloads if needed
+    agentUpgrade: 'security',
   }
 };
 
