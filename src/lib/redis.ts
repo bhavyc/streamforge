@@ -1,17 +1,20 @@
 import IORedis, { RedisOptions } from 'ioredis';
 import { CONFIG } from '../config/env';
 
+const isTls = CONFIG.REDIS_HOST.includes('upstash.io') || process.env.REDIS_TLS === 'true';
+
 export const redisConnectionOptions: RedisOptions = {
   host: CONFIG.REDIS_HOST,
   port: CONFIG.REDIS_PORT,
   password: CONFIG.REDIS_PASSWORD || undefined,
+  tls: isTls ? {} : undefined,
   maxRetriesPerRequest: null, // Required by BullMQ
   enableReadyCheck: false,
   lazyConnect: true,
-  connectTimeout: 3000,
+  connectTimeout: 6000,
   retryStrategy(times) {
-    // Stop reconnecting after 2 tries when Redis server is not running
-    if (times > 2) {
+    // Stop reconnecting after 3 tries when Redis server is not running
+    if (times > 3) {
       return null;
     }
     return 1000;
