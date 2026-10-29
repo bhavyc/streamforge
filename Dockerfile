@@ -1,10 +1,11 @@
 # Multi-Stage Dockerfile for StreamForge Media Transcoder
-FROM node:22-bullseye-slim AS base
+FROM node:22-bookworm-slim AS base
 
 # Install FFmpeg and system dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
     ffmpeg \
     curl \
+    ca-certificates \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
