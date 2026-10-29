@@ -1318,8 +1318,7 @@ export default function HomePage() {
       <footer
         style={{
           borderTop: '1px solid var(--border-color)',
-          padding: '20px 24px',
-          textAlign: 'center',
+          padding: '16px 24px',
           fontSize: '12px',
           color: 'var(--text-dim)',
           background: 'var(--bg-secondary)',
@@ -1327,10 +1326,10 @@ export default function HomePage() {
       >
         <div style={{ maxWidth: '1400px', margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
           <div>
-            Built with <strong>Next.js</strong>, <strong>Redis</strong>, <strong>BullMQ</strong>, <strong>FFmpeg</strong>, and <strong>AWS S3</strong>.
+            StreamForge Media Systems © 2026. All rights reserved.
           </div>
           <div>
-            Designed for High-Throughput Media Processing Pipelines & Distributed Cloud Architectures.
+            Enterprise Video Ingestion & Transcoding Engine
           </div>
         </div>
       </footer>
