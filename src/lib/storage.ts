@@ -68,6 +68,16 @@ export class StorageService {
       })
     );
 
+    if (CONFIG.AWS_S3_CUSTOM_DOMAIN) {
+      const base = CONFIG.AWS_S3_CUSTOM_DOMAIN.replace(/\/+$/, '');
+      return `${base}/${key}`;
+    }
+
+    if (CONFIG.AWS_S3_ENDPOINT) {
+      const base = CONFIG.AWS_S3_ENDPOINT.replace(/\/+$/, '');
+      return `${base}/${CONFIG.AWS_S3_BUCKET}/${key}`;
+    }
+
     return `https://${CONFIG.AWS_S3_BUCKET}.s3.${CONFIG.AWS_REGION}.amazonaws.com/${key}`;
   }
 

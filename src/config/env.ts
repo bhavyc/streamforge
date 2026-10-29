@@ -26,12 +26,13 @@ export const CONFIG = {
   // Storage Driver: 'local' | 's3'
   STORAGE_DRIVER: (process.env.STORAGE_DRIVER || 'local') as 'local' | 's3',
 
-  // AWS S3 Configuration (Optional - for cloud deployment)
-  AWS_REGION: process.env.AWS_REGION || 'us-east-1',
+  // AWS S3 / Cloudflare R2 / S3-Compatible Storage Configuration
+  AWS_REGION: process.env.AWS_REGION || 'auto',
   AWS_ACCESS_KEY_ID: process.env.AWS_ACCESS_KEY_ID || '',
   AWS_SECRET_ACCESS_KEY: process.env.AWS_SECRET_ACCESS_KEY || '',
   AWS_S3_BUCKET: process.env.AWS_S3_BUCKET || '',
-  AWS_S3_ENDPOINT: process.env.AWS_S3_ENDPOINT || undefined, // For MinIO or LocalStack
+  AWS_S3_ENDPOINT: process.env.AWS_S3_ENDPOINT || undefined, // For Cloudflare R2, MinIO, Supabase, Backblaze
+  AWS_S3_CUSTOM_DOMAIN: process.env.AWS_S3_CUSTOM_DOMAIN || process.env.S3_PUBLIC_URL || '', // For R2 pub-xxx.r2.dev or custom CDN domain
 
   // Production Guards & Policies
   MAX_FILE_SIZE_MB: parseInt(process.env.MAX_FILE_SIZE_MB || '500', 10),
