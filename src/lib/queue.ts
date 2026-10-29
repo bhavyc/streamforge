@@ -1,4 +1,4 @@
-import { Queue } from 'bullmq';
+import { Queue, Worker } from 'bullmq';
 import { redisConnectionOptions } from './redis';
 import { CONFIG } from '../config/env';
 import { VideoProcessingJobData, VideoProcessingResult } from './types';
@@ -8,13 +8,18 @@ import {
   UnifiedJob,
   queueEvents,
 } from './queue-manager';
+import { processVideoJob } from '../worker/processor';
 
-// Global cache for BullMQ Queue
+// Global cache for BullMQ Queue and Worker
 declare global {
   // eslint-disable-next-line no-var
   var __videoQueue: Queue<VideoProcessingJobData> | undefined;
   // eslint-disable-next-line no-var
   var __bullMQAvailable: boolean | undefined;
+  // eslint-disable-next-line no-var
+  var __bullWorker: Worker<VideoProcessingJobData, VideoProcessingResult> | undefined;
+  // eslint-disable-next-line no-var
+  var __embeddedProcessorSet: boolean | undefined;
 }
 
 export { queueEvents };
@@ -36,15 +41,51 @@ export function getBullQueue(): Queue<VideoProcessingJobData> {
   return global.__videoQueue;
 }
 
+export async function ensureWorkerStarted() {
+  const bullAvailable = await isBullMQ();
+  if (bullAvailable) {
+    if (!global.__bullWorker) {
+      console.log('[Queue] Initializing unified in-process BullMQ worker...');
+      global.__bullWorker = new Worker<VideoProcessingJobData, VideoProcessingResult>(
+        CONFIG.QUEUE_NAME,
+        async (job) => {
+          return await processVideoJob(job);
+        },
+        {
+          connection: redisConnectionOptions,
+          concurrency: 1, // 1 job at a time to prevent RAM spikes on 512MB container
+          lockDuration: 60000,
+        }
+      );
+      global.__bullWorker.on('failed', (job, err) => {
+        console.error(`[Worker Job Failed]: ${job?.id}:`, err.message);
+      });
+      global.__bullWorker.on('completed', (job) => {
+        console.log(`[Worker Job Completed]: ${job?.id}`);
+      });
+    }
+  } else {
+    if (!global.__embeddedProcessorSet) {
+      console.log('[Queue] Initializing embedded in-process worker...');
+      const embedded = getEmbeddedQueue();
+      embedded.setProcessor(async (job) => {
+        return await processVideoJob(job);
+      }, 1);
+      global.__embeddedProcessorSet = true;
+    }
+  }
+}
+
 export async function addVideoJob(jobData: VideoProcessingJobData): Promise<UnifiedJob | any> {
+  await ensureWorkerStarted();
   const bullAvailable = await isBullMQ();
   if (bullAvailable) {
     try {
       const queue = getBullQueue();
       return await queue.add('transcode-video', jobData, {
         jobId: jobData.jobId,
-        attempts: 3,
-        backoff: { type: 'exponential', delay: 5000 },
+        attempts: 2,
+        backoff: { type: 'exponential', delay: 3000 },
         removeOnComplete: false,
         removeOnFail: false,
       });

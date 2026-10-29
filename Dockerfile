@@ -27,5 +27,7 @@ ENV PORT=10000
 # Expose Render default port exclusively
 EXPOSE 10000
 
-# Default command: Web server + Background Worker concurrently
-CMD ["npm", "run", "start:all"]
+ENV NODE_OPTIONS="--max-old-space-size=380"
+
+# Default command: Single lightweight process with unified worker
+CMD ["npm", "run", "start"]

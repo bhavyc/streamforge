@@ -1,5 +1,7 @@
 import fs from 'fs';
 import path from 'path';
+import { Readable } from 'stream';
+import { pipeline } from 'stream/promises';
 import { CONFIG } from '../config/env';
 import { S3Client, PutObjectCommand, GetObjectCommand } from '@aws-sdk/client-s3';
 
@@ -29,7 +31,18 @@ if (CONFIG.STORAGE_DRIVER === 's3' && CONFIG.AWS_S3_BUCKET) {
 
 export class StorageService {
   /**
-   * Save uploaded buffer or stream to raw storage
+   * Save uploaded web stream directly to disk without loading into RAM (Zero Memory Leak)
+   */
+  static async saveRawFileStream(fileName: string, stream: any): Promise<string> {
+    initStorageDirectories();
+    const filePath = path.join(CONFIG.RAW_DIR, fileName);
+    const nodeStream = Readable.fromWeb(stream);
+    await pipeline(nodeStream, fs.createWriteStream(filePath));
+    return filePath;
+  }
+
+  /**
+   * Save uploaded buffer to raw storage (Legacy fallback)
    */
   static async saveRawFile(fileName: string, buffer: Buffer): Promise<string> {
     initStorageDirectories();

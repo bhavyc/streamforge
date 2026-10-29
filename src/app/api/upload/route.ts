@@ -45,11 +45,8 @@ export async function POST(req: NextRequest) {
     const jobId = uuidv4();
     const safeFileName = `${jobId}${extension}`;
 
-    // Convert file to Buffer and save to raw storage
-    const arrayBuffer = await file.arrayBuffer();
-    const buffer = Buffer.from(arrayBuffer);
-
-    const rawFilePath = await StorageService.saveRawFile(safeFileName, buffer);
+    // Stream directly to disk (Zero-RAM buffering)
+    const rawFilePath = await StorageService.saveRawFileStream(safeFileName, file.stream());
 
     const tool = (formData.get('tool') as any) || 'compress';
     let toolOptions = undefined;
@@ -78,7 +75,7 @@ export async function POST(req: NextRequest) {
         success: true,
         jobId,
         fileName: originalFileName,
-        fileSizeBytes: buffer.byteLength,
+        fileSizeBytes: file.size,
         status: 'queued',
         message: 'Video successfully uploaded and enqueued for asynchronous processing.',
       },
