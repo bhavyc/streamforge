@@ -23,11 +23,32 @@ export interface VideoRendition {
   duration: number;
 }
 
+export type VideoToolType = 
+  | 'compress' 
+  | 'extract-audio' 
+  | 'trim' 
+  | 'mute' 
+  | 'speed' 
+  | 'gif' 
+  | 'convert';
+
+export interface VideoToolOptions {
+  compressPreset?: 'whatsapp-16' | 'whatsapp-64' | 'email-25' | 'discord-25' | 'half' | 'quarter';
+  targetSizeMB?: number;
+  startTimeSec?: number;
+  endTimeSec?: number;
+  speedMultiplier?: number;
+  targetFormat?: 'mp4' | 'webm' | 'gif' | 'mp3';
+  audioBitrate?: '128k' | '192k' | '320k';
+}
+
 export interface VideoProcessingJobData {
   jobId: string;
   originalFileName: string;
   rawFilePath: string;
   uploadedAt: string;
+  tool?: VideoToolType;
+  toolOptions?: VideoToolOptions;
   s3Key?: string;
 }
 
@@ -42,8 +63,13 @@ export interface VideoProcessingResult {
   jobId: string;
   originalFileName: string;
   metadata: VideoMetadata;
-  renditions: VideoRendition[];
-  thumbnails: string[];
+  tool?: VideoToolType;
+  outputFileName?: string;
+  outputFileUrl?: string;
+  outputFileSizeBytes?: number;
+  outputFormat?: string;
+  renditions?: VideoRendition[];
+  thumbnails?: string[];
   previewGif?: string;
   completedAt: string;
   processingTimeMs: number;

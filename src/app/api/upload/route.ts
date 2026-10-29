@@ -51,12 +51,23 @@ export async function POST(req: NextRequest) {
 
     const rawFilePath = await StorageService.saveRawFile(safeFileName, buffer);
 
+    const tool = (formData.get('tool') as any) || 'compress';
+    let toolOptions = undefined;
+    const rawOptions = formData.get('toolOptions') as string | null;
+    if (rawOptions) {
+      try {
+        toolOptions = JSON.parse(rawOptions);
+      } catch {}
+    }
+
     // Build job payload
     const jobData: VideoProcessingJobData = {
       jobId,
       originalFileName,
       rawFilePath,
       uploadedAt: new Date().toISOString(),
+      tool,
+      toolOptions,
     };
 
     // Dispatch job to BullMQ Redis Queue

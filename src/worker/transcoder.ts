@@ -128,4 +128,209 @@ export class TranscodingEngine {
         .run();
     });
   }
+
+  /**
+   * 1-Click Audio Extraction to MP3
+   */
+  static extractMp3(
+    inputPath: string,
+    outputPath: string,
+    bitrate: string = '192k',
+    onProgress?: (percent: number) => void
+  ): Promise<void> {
+    return new Promise((resolve, reject) => {
+      ffmpeg(inputPath)
+        .noVideo()
+        .audioCodec('libmp3lame')
+        .audioBitrate(bitrate)
+        .output(outputPath)
+        .on('progress', (p) => {
+          if (p.percent && onProgress) onProgress(Math.min(100, Math.round(p.percent)));
+        })
+        .on('end', () => {
+          if (onProgress) onProgress(100);
+          resolve();
+        })
+        .on('error', (err) => reject(err))
+        .run();
+    });
+  }
+
+  /**
+   * Target-Size Video Compressor (WhatsApp, Email, Custom Size)
+   */
+  static compressToTargetSize(
+    inputPath: string,
+    outputPath: string,
+    targetSizeMB: number,
+    durationSec: number,
+    onProgress?: (percent: number) => void
+  ): Promise<void> {
+    return new Promise((resolve, reject) => {
+      const dur = Math.max(1, durationSec);
+      const totalBits = targetSizeMB * 8 * 1024 * 1024;
+      const audioBitrateKbps = 96;
+      const targetVideoBitrateKbps = Math.max(
+        150,
+        Math.floor((totalBits / dur / 1000) - audioBitrateKbps)
+      );
+
+      ffmpeg(inputPath)
+        .videoCodec('libx264')
+        .audioCodec('aac')
+        .outputOptions([
+          '-preset veryfast',
+          `-b:v ${targetVideoBitrateKbps}k`,
+          `-maxrate ${Math.round(targetVideoBitrateKbps * 1.2)}k`,
+          `-bufsize ${targetVideoBitrateKbps * 2}k`,
+          '-pix_fmt yuv420p',
+          '-movflags +faststart',
+          "-vf scale='min(1280,iw)':-2",
+        ])
+        .audioBitrate('96k')
+        .output(outputPath)
+        .on('progress', (p) => {
+          if (p.percent && onProgress) onProgress(Math.min(100, Math.round(p.percent)));
+        })
+        .on('end', () => {
+          if (onProgress) onProgress(100);
+          resolve();
+        })
+        .on('error', (err) => reject(err))
+        .run();
+    });
+  }
+
+  /**
+   * Fast Video Trimmer / Cutter
+   */
+  static trimVideo(
+    inputPath: string,
+    outputPath: string,
+    startSec: number,
+    endSec: number,
+    onProgress?: (percent: number) => void
+  ): Promise<void> {
+    return new Promise((resolve, reject) => {
+      const duration = Math.max(0.5, endSec - startSec);
+      ffmpeg(inputPath)
+        .setStartTime(Math.max(0, startSec))
+        .setDuration(duration)
+        .videoCodec('libx264')
+        .audioCodec('aac')
+        .outputOptions(['-preset veryfast', '-movflags +faststart'])
+        .output(outputPath)
+        .on('progress', (p) => {
+          if (p.percent && onProgress) onProgress(Math.min(100, Math.round(p.percent)));
+        })
+        .on('end', () => {
+          if (onProgress) onProgress(100);
+          resolve();
+        })
+        .on('error', (err) => reject(err))
+        .run();
+    });
+  }
+
+  /**
+   * Remove Audio / Mute Video
+   */
+  static muteVideo(
+    inputPath: string,
+    outputPath: string,
+    onProgress?: (percent: number) => void
+  ): Promise<void> {
+    return new Promise((resolve, reject) => {
+      ffmpeg(inputPath)
+        .noAudio()
+        .outputOptions(['-c:v copy'])
+        .output(outputPath)
+        .on('end', () => {
+          if (onProgress) onProgress(100);
+          resolve();
+        })
+        .on('error', () => {
+          // Fallback to re-encode if stream copy fails on certain containers
+          ffmpeg(inputPath)
+            .noAudio()
+            .videoCodec('libx264')
+            .outputOptions(['-preset ultrafast', '-movflags +faststart'])
+            .output(outputPath)
+            .on('end', () => {
+              if (onProgress) onProgress(100);
+              resolve();
+            })
+            .on('error', (reErr) => reject(reErr))
+            .run();
+        })
+        .run();
+    });
+  }
+
+  /**
+   * Change Video Speed (0.5x, 0.75x, 1.25x, 1.5x, 2x)
+   */
+  static changeSpeed(
+    inputPath: string,
+    outputPath: string,
+    speedMultiplier: number,
+    onProgress?: (percent: number) => void
+  ): Promise<void> {
+    return new Promise((resolve, reject) => {
+      const speed = Math.max(0.25, Math.min(4, speedMultiplier));
+      const videoFilter = `setpts=${(1 / speed).toFixed(4)}*PTS`;
+      const audioFilter = `atempo=${speed.toFixed(2)}`;
+
+      ffmpeg(inputPath)
+        .videoFilters(videoFilter)
+        .audioFilters(audioFilter)
+        .videoCodec('libx264')
+        .audioCodec('aac')
+        .outputOptions(['-preset veryfast', '-movflags +faststart'])
+        .output(outputPath)
+        .on('progress', (p) => {
+          if (p.percent && onProgress) onProgress(Math.min(100, Math.round(p.percent)));
+        })
+        .on('end', () => {
+          if (onProgress) onProgress(100);
+          resolve();
+        })
+        .on('error', (err) => reject(err))
+        .run();
+    });
+  }
+
+  /**
+   * Convert Video Format (MOV/MKV/AVI -> MP4/WebM)
+   */
+  static convertFormat(
+    inputPath: string,
+    outputPath: string,
+    format: string = 'mp4',
+    onProgress?: (percent: number) => void
+  ): Promise<void> {
+    return new Promise((resolve, reject) => {
+      const cmd = ffmpeg(inputPath);
+      if (format === 'webm') {
+        cmd.videoCodec('libvpx-vp9').audioCodec('libopus');
+      } else {
+        cmd
+          .videoCodec('libx264')
+          .audioCodec('aac')
+          .outputOptions(['-preset veryfast', '-movflags +faststart', '-pix_fmt yuv420p']);
+      }
+
+      cmd
+        .output(outputPath)
+        .on('progress', (p) => {
+          if (p.percent && onProgress) onProgress(Math.min(100, Math.round(p.percent)));
+        })
+        .on('end', () => {
+          if (onProgress) onProgress(100);
+          resolve();
+        })
+        .on('error', (err) => reject(err))
+        .run();
+    });
+  }
 }
