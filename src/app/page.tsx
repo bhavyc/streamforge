@@ -21,10 +21,35 @@ import {
   Maximize2,
   ChevronRight,
   ExternalLink,
+  Sun,
+  Moon,
 } from 'lucide-react';
 import { JobDetailsResponse, VideoRendition, VideoProcessingResult } from '@/lib/types';
 
 export default function HomePage() {
+  // Theme state: defaults to modern Light theme
+  const [theme, setTheme] = useState<'light' | 'dark'>('light');
+
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem('streamforge_theme') as 'light' | 'dark' | null;
+      const initial = saved || 'light';
+      setTheme(initial);
+      document.documentElement.setAttribute('data-theme', initial);
+    } catch {
+      setTheme('light');
+    }
+  }, []);
+
+  const toggleTheme = () => {
+    const next = theme === 'light' ? 'dark' : 'light';
+    setTheme(next);
+    document.documentElement.setAttribute('data-theme', next);
+    try {
+      localStorage.setItem('streamforge_theme', next);
+    } catch {}
+  };
+
   // State
   const [file, setFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
@@ -242,8 +267,8 @@ export default function HomePage() {
       <header
         style={{
           borderBottom: '1px solid var(--border-color)',
-          background: 'rgba(9, 13, 22, 0.85)',
-          backdropFilter: 'blur(16px)',
+          background: 'var(--bg-secondary)',
+          boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)',
           position: 'sticky',
           top: 0,
           zIndex: 40,
@@ -268,18 +293,18 @@ export default function HomePage() {
                 width: '42px',
                 height: '42px',
                 borderRadius: '12px',
-                background: 'linear-gradient(135deg, #6366f1 0%, #06b6d4 100%)',
+                background: 'linear-gradient(135deg, #4f46e5 0%, #0284c7 100%)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                boxShadow: '0 4px 15px rgba(99, 102, 241, 0.4)',
+                boxShadow: '0 4px 15px rgba(79, 70, 229, 0.35)',
               }}
             >
               <Video size={22} color="#ffffff" />
             </div>
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <h1 style={{ fontSize: '20px', fontWeight: 800, letterSpacing: '-0.5px' }}>
+                <h1 style={{ fontSize: '20px', fontWeight: 800, letterSpacing: '-0.5px', color: 'var(--text-main)' }}>
                   Stream<span className="gradient-text">Forge</span>
                 </h1>
                 <span
@@ -288,9 +313,9 @@ export default function HomePage() {
                     fontWeight: 600,
                     padding: '2px 8px',
                     borderRadius: '20px',
-                    background: 'rgba(99, 102, 241, 0.15)',
-                    color: '#a5b4fc',
-                    border: '1px solid rgba(99, 102, 241, 0.3)',
+                    background: 'var(--primary-subtle)',
+                    color: 'var(--primary)',
+                    border: '1px solid var(--primary-border)',
                   }}
                 >
                   v2.4 Media Engine
@@ -302,7 +327,7 @@ export default function HomePage() {
             </div>
           </div>
 
-          {/* Right Status Badges & System Architecture trigger */}
+          {/* Right Status Badges, Architecture trigger & Theme Toggle */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
             <div
               style={{
@@ -311,7 +336,7 @@ export default function HomePage() {
                 gap: '8px',
                 padding: '6px 14px',
                 borderRadius: '30px',
-                background: 'rgba(15, 23, 42, 0.6)',
+                background: 'var(--bg-inner)',
                 border: '1px solid var(--border-color)',
                 fontSize: '12px',
                 fontWeight: 500,
@@ -329,15 +354,15 @@ export default function HomePage() {
                 gap: '8px',
                 padding: '6px 14px',
                 borderRadius: '30px',
-                background: 'rgba(15, 23, 42, 0.6)',
+                background: 'var(--bg-inner)',
                 border: '1px solid var(--border-color)',
                 fontSize: '12px',
                 fontWeight: 500,
               }}
             >
-              <HardDrive size={14} color="#06b6d4" />
+              <HardDrive size={14} color="var(--accent)" />
               <span style={{ color: 'var(--text-muted)' }}>Redis:</span>
-              <span style={{ color: '#06b6d4', fontWeight: 600 }}>Connected (6379)</span>
+              <span style={{ color: 'var(--accent)', fontWeight: 600 }}>Connected (6379)</span>
             </div>
 
             <button
@@ -349,9 +374,9 @@ export default function HomePage() {
                 gap: '6px',
                 padding: '6px 14px',
                 borderRadius: '30px',
-                background: 'rgba(99, 102, 241, 0.12)',
-                border: '1px solid rgba(99, 102, 241, 0.3)',
-                color: '#a5b4fc',
+                background: 'var(--primary-subtle)',
+                border: '1px solid var(--primary-border)',
+                color: 'var(--primary)',
                 fontSize: '12px',
                 fontWeight: 600,
                 cursor: 'pointer',
@@ -360,6 +385,38 @@ export default function HomePage() {
             >
               <Layers size={14} />
               System Architecture
+            </button>
+
+            <button
+              id="theme-toggle-btn"
+              onClick={toggleTheme}
+              title={`Switch to ${theme === 'light' ? 'Dark' : 'Light'} Mode`}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                padding: '6px 14px',
+                borderRadius: '30px',
+                background: 'var(--bg-inner)',
+                border: '1px solid var(--border-color)',
+                color: 'var(--text-main)',
+                fontSize: '12px',
+                fontWeight: 600,
+                cursor: 'pointer',
+                transition: 'all 0.2s',
+              }}
+            >
+              {theme === 'light' ? (
+                <>
+                  <Moon size={14} color="#4f46e5" />
+                  <span>Dark Mode</span>
+                </>
+              ) : (
+                <>
+                  <Sun size={14} color="#f59e0b" />
+                  <span>Light Mode</span>
+                </>
+              )}
             </button>
           </div>
         </div>
@@ -381,9 +438,9 @@ export default function HomePage() {
               <span style={{ fontSize: '13px', color: 'var(--text-muted)', fontWeight: 500 }}>
                 Active Transcodes
               </span>
-              <Activity size={18} color="#6366f1" />
+              <Activity size={18} color="var(--primary)" />
             </div>
-            <div style={{ fontSize: '28px', fontWeight: 800, marginTop: '8px', color: '#818cf8' }}>
+            <div style={{ fontSize: '28px', fontWeight: 800, marginTop: '8px', color: 'var(--primary)' }}>
               {queueMetrics.active}
             </div>
             <div style={{ fontSize: '11px', color: 'var(--text-dim)', marginTop: '4px' }}>
@@ -396,9 +453,9 @@ export default function HomePage() {
               <span style={{ fontSize: '13px', color: 'var(--text-muted)', fontWeight: 500 }}>
                 Waiting in Queue
               </span>
-              <Clock size={18} color="#f59e0b" />
+              <Clock size={18} color="var(--warning)" />
             </div>
-            <div style={{ fontSize: '28px', fontWeight: 800, marginTop: '8px', color: '#fbbf24' }}>
+            <div style={{ fontSize: '28px', fontWeight: 800, marginTop: '8px', color: 'var(--warning)' }}>
               {queueMetrics.waiting}
             </div>
             <div style={{ fontSize: '11px', color: 'var(--text-dim)', marginTop: '4px' }}>
@@ -411,9 +468,9 @@ export default function HomePage() {
               <span style={{ fontSize: '13px', color: 'var(--text-muted)', fontWeight: 500 }}>
                 Completed Assets
               </span>
-              <CheckCircle2 size={18} color="#10b981" />
+              <CheckCircle2 size={18} color="var(--success)" />
             </div>
-            <div style={{ fontSize: '28px', fontWeight: 800, marginTop: '8px', color: '#34d399' }}>
+            <div style={{ fontSize: '28px', fontWeight: 800, marginTop: '8px', color: 'var(--success)' }}>
               {queueMetrics.completed}
             </div>
             <div style={{ fontSize: '11px', color: 'var(--text-dim)', marginTop: '4px' }}>
@@ -426,9 +483,9 @@ export default function HomePage() {
               <span style={{ fontSize: '13px', color: 'var(--text-muted)', fontWeight: 500 }}>
                 Storage Adapter
               </span>
-              <Server size={18} color="#06b6d4" />
+              <Server size={18} color="var(--accent)" />
             </div>
-            <div style={{ fontSize: '22px', fontWeight: 800, marginTop: '8px', color: '#38bdf8' }}>
+            <div style={{ fontSize: '22px', fontWeight: 800, marginTop: '8px', color: 'var(--accent)' }}>
               Local / AWS S3
             </div>
             <div style={{ fontSize: '11px', color: 'var(--text-dim)', marginTop: '4px' }}>
@@ -444,8 +501,8 @@ export default function HomePage() {
             {/* Upload Box */}
             <div className="glass-panel" style={{ padding: '24px' }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
-                <h2 style={{ fontSize: '16px', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <Upload size={18} color="#6366f1" />
+                <h2 style={{ fontSize: '16px', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-main)' }}>
+                  <Upload size={18} color="var(--primary)" />
                   Media Ingestion Studio
                 </h2>
                 <span style={{ fontSize: '12px', color: 'var(--text-dim)' }}>
@@ -462,8 +519,8 @@ export default function HomePage() {
                 onDrop={handleDrop}
                 onClick={() => fileInputRef.current?.click()}
                 style={{
-                  border: `2px dashed ${dragActive ? '#6366f1' : 'rgba(255, 255, 255, 0.12)'}`,
-                  background: dragActive ? 'rgba(99, 102, 241, 0.08)' : 'rgba(15, 23, 42, 0.4)',
+                  border: `2px dashed ${dragActive ? 'var(--primary)' : 'var(--drop-border)'}`,
+                  background: dragActive ? 'var(--drop-active)' : 'var(--drop-bg)',
                   borderRadius: '14px',
                   padding: '32px 20px',
                   textAlign: 'center',
@@ -486,15 +543,15 @@ export default function HomePage() {
                     width: '54px',
                     height: '54px',
                     borderRadius: '50%',
-                    background: 'rgba(99, 102, 241, 0.15)',
+                    background: 'var(--primary-subtle)',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                     margin: '0 auto 14px auto',
-                    border: '1px solid rgba(99, 102, 241, 0.3)',
+                    border: '1px solid var(--primary-border)',
                   }}
                 >
-                  <FileVideo size={26} color="#818cf8" />
+                  <FileVideo size={26} color="var(--primary)" />
                 </div>
 
                 <div style={{ fontSize: '15px', fontWeight: 600, color: 'var(--text-main)', marginBottom: '6px' }}>
@@ -545,8 +602,8 @@ export default function HomePage() {
             {/* Pipeline Stage Tracker */}
             <div className="glass-panel" style={{ padding: '24px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-                <h3 style={{ fontSize: '15px', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <Cpu size={18} color="#06b6d4" />
+                <h3 style={{ fontSize: '15px', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-main)' }}>
+                  <Cpu size={18} color="var(--accent)" />
                   Distributed Pipeline Monitor
                 </h3>
                 {jobData && (
@@ -557,16 +614,16 @@ export default function HomePage() {
                       borderRadius: '12px',
                       background:
                         jobData.status === 'completed'
-                          ? 'rgba(16, 185, 129, 0.2)'
+                          ? 'var(--success-subtle)'
                           : jobData.status === 'failed'
-                          ? 'rgba(239, 68, 68, 0.2)'
-                          : 'rgba(99, 102, 241, 0.2)',
+                          ? 'var(--danger-subtle)'
+                          : 'var(--primary-subtle)',
                       color:
                         jobData.status === 'completed'
-                          ? '#34d399'
+                          ? 'var(--success)'
                           : jobData.status === 'failed'
-                          ? '#f87171'
-                          : '#a5b4fc',
+                          ? 'var(--danger)'
+                          : 'var(--primary)',
                       border: '1px solid currentColor',
                       textTransform: 'uppercase',
                       fontWeight: 700,
@@ -585,14 +642,15 @@ export default function HomePage() {
                       <span style={{ color: 'var(--text-muted)' }}>
                         {jobData.progressMessage || 'Processing pipeline stages...'}
                       </span>
-                      <span style={{ fontWeight: 700, color: '#38bdf8' }}>{jobData.progress}%</span>
+                      <span style={{ fontWeight: 700, color: 'var(--primary)' }}>{jobData.progress}%</span>
                     </div>
 
                     <div
                       style={{
                         width: '100%',
                         height: '10px',
-                        background: 'rgba(255, 255, 255, 0.08)',
+                        background: 'var(--bg-inner)',
+                        border: '1px solid var(--border-color)',
                         borderRadius: '6px',
                         overflow: 'hidden',
                       }}
@@ -607,7 +665,7 @@ export default function HomePage() {
                               ? 'linear-gradient(90deg, #10b981, #059669)'
                               : jobData.status === 'failed'
                               ? '#ef4444'
-                              : 'linear-gradient(90deg, #6366f1, #06b6d4)',
+                              : 'linear-gradient(90deg, #4f46e5, #0284c7)',
                           borderRadius: '6px',
                           transition: 'width 0.4s ease',
                         }}
@@ -658,16 +716,16 @@ export default function HomePage() {
                           padding: '10px 14px',
                           borderRadius: '10px',
                           background: step.active
-                            ? 'rgba(99, 102, 241, 0.12)'
+                            ? 'var(--primary-subtle)'
                             : step.done
-                            ? 'rgba(16, 185, 129, 0.06)'
-                            : 'rgba(255, 255, 255, 0.02)',
+                            ? 'var(--success-subtle)'
+                            : 'var(--bg-inner)',
                           border: `1px solid ${
                             step.active
-                              ? 'rgba(99, 102, 241, 0.35)'
+                              ? 'var(--primary-border)'
                               : step.done
-                              ? 'rgba(16, 185, 129, 0.2)'
-                              : 'transparent'
+                              ? 'var(--success)'
+                              : 'var(--border-color)'
                           }`,
                         }}
                       >
@@ -680,23 +738,23 @@ export default function HomePage() {
                             alignItems: 'center',
                             justifyContent: 'center',
                             background: step.done
-                              ? '#10b981'
+                              ? 'var(--success)'
                               : step.active
-                              ? '#6366f1'
-                              : 'rgba(255, 255, 255, 0.1)',
-                            color: '#ffffff',
+                              ? 'var(--primary)'
+                              : 'var(--border-color)',
+                            color: step.done || step.active ? '#ffffff' : 'var(--text-dim)',
                             fontSize: '11px',
                             fontWeight: 700,
                           }}
                         >
-                          {step.done ? '' : idx + 1}
+                          {step.done ? '✓' : idx + 1}
                         </div>
                         <div style={{ flex: 1 }}>
                           <div
                             style={{
                               fontSize: '13px',
                               fontWeight: 600,
-                              color: step.active ? '#a5b4fc' : step.done ? '#f1f5f9' : 'var(--text-dim)',
+                              color: step.active ? 'var(--primary)' : step.done ? 'var(--text-main)' : 'var(--text-dim)',
                             }}
                           >
                             {step.title}
@@ -716,7 +774,7 @@ export default function HomePage() {
                     fontSize: '13px',
                   }}
                 >
-                  <Cpu size={32} color="#475569" style={{ margin: '0 auto 10px auto' }} />
+                  <Cpu size={32} color="var(--text-dim)" style={{ margin: '0 auto 10px auto' }} />
                   Select or upload a video above to observe the real-time background worker stages.
                 </div>
               )}
@@ -774,8 +832,8 @@ export default function HomePage() {
             {/* Player Container */}
             <div className="glass-panel" style={{ padding: '24px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-                <h3 style={{ fontSize: '16px', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <Play size={18} color="#10b981" />
+                <h3 style={{ fontSize: '16px', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-main)' }}>
+                  <Play size={18} color="var(--success)" />
                   Adaptive Rendition Player
                 </h3>
                 {currentRendition && (
@@ -784,8 +842,9 @@ export default function HomePage() {
                       fontSize: '12px',
                       padding: '3px 10px',
                       borderRadius: '8px',
-                      background: 'rgba(99, 102, 241, 0.2)',
-                      color: '#a5b4fc',
+                      background: 'var(--primary-subtle)',
+                      border: '1px solid var(--primary-border)',
+                      color: 'var(--primary)',
                       fontWeight: 600,
                     }}
                   >
@@ -800,10 +859,10 @@ export default function HomePage() {
                   position: 'relative',
                   width: '100%',
                   aspectRatio: '16/9',
-                  background: '#05070c',
+                  background: currentRendition ? '#000000' : 'var(--bg-inner)',
                   borderRadius: '12px',
                   overflow: 'hidden',
-                  border: '1px solid rgba(255, 255, 255, 0.1)',
+                  border: '1px solid var(--border-color)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -824,7 +883,7 @@ export default function HomePage() {
                   </video>
                 ) : (
                   <div style={{ textAlign: 'center', padding: '20px' }}>
-                    <Video size={48} color="#334155" style={{ margin: '0 auto 12px auto' }} />
+                    <Video size={48} color="var(--text-dim)" style={{ margin: '0 auto 12px auto' }} />
                     <div style={{ fontSize: '14px', color: 'var(--text-muted)', fontWeight: 500 }}>
                       Player waiting for transcoded output...
                     </div>
@@ -851,20 +910,21 @@ export default function HomePage() {
                           borderRadius: '8px',
                           border: `1px solid ${
                             selectedResolution === rend.resolution
-                              ? '#6366f1'
-                              : 'rgba(255, 255, 255, 0.1)'
+                              ? 'var(--primary)'
+                              : 'var(--border-color)'
                           }`,
                           background:
                             selectedResolution === rend.resolution
-                              ? 'linear-gradient(135deg, rgba(99, 102, 241, 0.3) 0%, rgba(6, 182, 212, 0.2) 100%)'
-                              : 'rgba(15, 23, 42, 0.6)',
-                          color: selectedResolution === rend.resolution ? '#ffffff' : 'var(--text-muted)',
+                              ? 'var(--primary-subtle)'
+                              : 'var(--bg-inner)',
+                          color: selectedResolution === rend.resolution ? 'var(--primary)' : 'var(--text-muted)',
                           fontWeight: 700,
                           fontSize: '13px',
                           cursor: 'pointer',
                           display: 'flex',
                           alignItems: 'center',
                           gap: '6px',
+                          transition: 'all 0.15s ease',
                         }}
                       >
                         <span>{rend.resolution}</span>
@@ -884,11 +944,11 @@ export default function HomePage() {
                     marginTop: '20px',
                     padding: '16px',
                     borderRadius: '10px',
-                    background: 'rgba(15, 23, 42, 0.5)',
+                    background: 'var(--bg-inner)',
                     border: '1px solid var(--border-color)',
                   }}
                 >
-                  <div style={{ fontSize: '13px', fontWeight: 700, marginBottom: '10px', color: '#a5b4fc' }}>
+                  <div style={{ fontSize: '13px', fontWeight: 700, marginBottom: '10px', color: 'var(--primary)' }}>
                     FFprobe Stream Specifications
                   </div>
                   <div
@@ -901,29 +961,29 @@ export default function HomePage() {
                   >
                     <div>
                       <span style={{ color: 'var(--text-dim)' }}>Original Resolution:</span>
-                      <div style={{ fontWeight: 600 }}>
+                      <div style={{ fontWeight: 600, color: 'var(--text-main)' }}>
                         {activeResult.metadata.width} x {activeResult.metadata.height}
                       </div>
                     </div>
                     <div>
                       <span style={{ color: 'var(--text-dim)' }}>Duration:</span>
-                      <div style={{ fontWeight: 600 }}>{activeResult.metadata.duration.toFixed(1)}s</div>
+                      <div style={{ fontWeight: 600, color: 'var(--text-main)' }}>{activeResult.metadata.duration.toFixed(1)}s</div>
                     </div>
                     <div>
                       <span style={{ color: 'var(--text-dim)' }}>Frame Rate:</span>
-                      <div style={{ fontWeight: 600 }}>{activeResult.metadata.fps} FPS</div>
+                      <div style={{ fontWeight: 600, color: 'var(--text-main)' }}>{activeResult.metadata.fps} FPS</div>
                     </div>
                     <div>
                       <span style={{ color: 'var(--text-dim)' }}>Video Codec:</span>
-                      <div style={{ fontWeight: 600 }}>{activeResult.metadata.videoCodec?.toUpperCase()}</div>
+                      <div style={{ fontWeight: 600, color: 'var(--text-main)' }}>{activeResult.metadata.videoCodec?.toUpperCase()}</div>
                     </div>
                     <div>
                       <span style={{ color: 'var(--text-dim)' }}>Audio Codec:</span>
-                      <div style={{ fontWeight: 600 }}>{activeResult.metadata.audioCodec?.toUpperCase()}</div>
+                      <div style={{ fontWeight: 600, color: 'var(--text-main)' }}>{activeResult.metadata.audioCodec?.toUpperCase()}</div>
                     </div>
                     <div>
                       <span style={{ color: 'var(--text-dim)' }}>Pipeline Latency:</span>
-                      <div style={{ fontWeight: 600, color: '#34d399' }}>
+                      <div style={{ fontWeight: 600, color: 'var(--success)' }}>
                         {(activeResult.processingTimeMs / 1000).toFixed(2)}s
                       </div>
                     </div>
@@ -935,8 +995,8 @@ export default function HomePage() {
             {/* Thumbnail Snapshots & Hover Animated GIF */}
             {activeResult && (
               <div className="glass-panel" style={{ padding: '24px' }}>
-                <h3 style={{ fontSize: '15px', fontWeight: 700, marginBottom: '14px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <Sparkles size={16} color="#f59e0b" />
+                <h3 style={{ fontSize: '15px', fontWeight: 700, marginBottom: '14px', display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-main)' }}>
+                  <Sparkles size={16} color="var(--warning)" />
                   Auto-Extracted Thumbnail Keyframes & GIF Teaser
                 </h3>
 
@@ -947,9 +1007,9 @@ export default function HomePage() {
                       style={{
                         borderRadius: '8px',
                         overflow: 'hidden',
-                        border: '1px solid rgba(255, 255, 255, 0.1)',
+                        border: '1px solid var(--border-color)',
                         aspectRatio: '16/9',
-                        background: '#090d16',
+                        background: 'var(--bg-inner)',
                         position: 'relative',
                       }}
                     >
@@ -965,6 +1025,7 @@ export default function HomePage() {
                           right: '4px',
                           fontSize: '9px',
                           background: 'rgba(0,0,0,0.7)',
+                          color: '#ffffff',
                           padding: '1px 5px',
                           borderRadius: '4px',
                         }}
@@ -980,9 +1041,9 @@ export default function HomePage() {
                       style={{
                         borderRadius: '8px',
                         overflow: 'hidden',
-                        border: '1px solid #6366f1',
+                        border: '2px solid var(--primary)',
                         aspectRatio: '16/9',
-                        background: '#090d16',
+                        background: 'var(--bg-inner)',
                         position: 'relative',
                       }}
                     >
@@ -997,7 +1058,7 @@ export default function HomePage() {
                           bottom: '4px',
                           right: '4px',
                           fontSize: '9px',
-                          background: '#6366f1',
+                          background: 'var(--primary)',
                           color: '#ffffff',
                           fontWeight: 700,
                           padding: '1px 5px',
@@ -1015,8 +1076,8 @@ export default function HomePage() {
             {/* Recent Jobs History Table */}
             <div className="glass-panel" style={{ padding: '24px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
-                <h3 style={{ fontSize: '15px', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <Clock size={16} color="#6366f1" />
+                <h3 style={{ fontSize: '15px', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-main)' }}>
+                  <Clock size={16} color="var(--primary)" />
                   Recent Pipeline Jobs
                 </h3>
                 <button
@@ -1027,8 +1088,9 @@ export default function HomePage() {
                     gap: '4px',
                     background: 'transparent',
                     border: 'none',
-                    color: '#a5b4fc',
+                    color: 'var(--primary)',
                     fontSize: '12px',
+                    fontWeight: 600,
                     cursor: 'pointer',
                   }}
                 >
@@ -1053,16 +1115,16 @@ export default function HomePage() {
                         justifyContent: 'space-between',
                         padding: '10px 14px',
                         borderRadius: '10px',
-                        background: job.id === currentJobId ? 'rgba(99, 102, 241, 0.15)' : 'rgba(15, 23, 42, 0.5)',
-                        border: `1px solid ${job.id === currentJobId ? '#6366f1' : 'var(--border-color)'}`,
+                        background: job.id === currentJobId ? 'var(--primary-subtle)' : 'var(--bg-inner)',
+                        border: `1px solid ${job.id === currentJobId ? 'var(--primary)' : 'var(--border-color)'}`,
                         cursor: 'pointer',
                         transition: 'all 0.2s',
                       }}
                     >
                       <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                        <FileVideo size={18} color="#818cf8" />
+                        <FileVideo size={18} color="var(--primary)" />
                         <div>
-                          <div style={{ fontSize: '13px', fontWeight: 600 }}>
+                          <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-main)' }}>
                             {job.fileName || `Job ${job.id.slice(0, 8)}...`}
                           </div>
                           <div style={{ fontSize: '11px', color: 'var(--text-dim)' }}>
@@ -1080,16 +1142,17 @@ export default function HomePage() {
                             borderRadius: '12px',
                             background:
                               job.status === 'completed'
-                                ? 'rgba(16, 185, 129, 0.2)'
+                                ? 'var(--success-subtle)'
                                 : job.status === 'active'
-                                ? 'rgba(99, 102, 241, 0.2)'
-                                : 'rgba(245, 158, 11, 0.2)',
+                                ? 'var(--primary-subtle)'
+                                : 'var(--warning-subtle)',
                             color:
                               job.status === 'completed'
-                                ? '#34d399'
+                                ? 'var(--success)'
                                 : job.status === 'active'
-                                ? '#a5b4fc'
-                                : '#fbbf24',
+                                ? 'var(--primary)'
+                                : 'var(--warning)',
+                            border: '1px solid currentColor',
                             textTransform: 'uppercase',
                           }}
                         >
@@ -1115,7 +1178,7 @@ export default function HomePage() {
             left: 0,
             right: 0,
             bottom: 0,
-            background: 'rgba(0, 0, 0, 0.8)',
+            background: 'rgba(0, 0, 0, 0.65)',
             backdropFilter: 'blur(8px)',
             display: 'flex',
             alignItems: 'center',
@@ -1134,12 +1197,14 @@ export default function HomePage() {
               overflowY: 'auto',
               padding: '32px',
               position: 'relative',
+              background: 'var(--bg-secondary)',
+              boxShadow: 'var(--shadow-card-hover)',
             }}
             onClick={(e) => e.stopPropagation()}
           >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
               <div>
-                <h2 style={{ fontSize: '20px', fontWeight: 800 }}>
+                <h2 style={{ fontSize: '20px', fontWeight: 800, color: 'var(--text-main)' }}>
                   High-Level System Architecture (HLD)
                 </h2>
                 <p style={{ fontSize: '13px', color: 'var(--text-muted)' }}>
@@ -1149,14 +1214,17 @@ export default function HomePage() {
               <button
                 onClick={() => setShowArchModal(false)}
                 style={{
-                  background: 'rgba(255, 255, 255, 0.1)',
-                  border: 'none',
-                  color: '#ffffff',
+                  background: 'var(--bg-inner)',
+                  border: '1px solid var(--border-color)',
+                  color: 'var(--text-main)',
                   width: '32px',
                   height: '32px',
                   borderRadius: '50%',
                   cursor: 'pointer',
                   fontWeight: 700,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
                 }}
               >
                 ✕
@@ -1166,14 +1234,14 @@ export default function HomePage() {
             {/* Architecture diagram cards */}
             <div
               style={{
-                background: '#05070c',
+                background: 'var(--terminal-bg)',
                 padding: '20px',
                 borderRadius: '12px',
-                border: '1px solid rgba(255, 255, 255, 0.1)',
+                border: '1px solid var(--border-color)',
                 fontFamily: 'var(--font-mono)',
                 fontSize: '12px',
                 lineHeight: 1.6,
-                color: '#38bdf8',
+                color: 'var(--terminal-text)',
                 marginBottom: '20px',
                 overflowX: 'auto',
               }}
@@ -1198,9 +1266,9 @@ export default function HomePage() {
                                                  |  (FFmpeg Transcoder)    |
                                                  +-------------------------+
                                                               |
-                                           +------------------+------------------+
-                                           |                                     |
-                                           v                                     v
+                                            +------------------+------------------+
+                                            |                                     |
+                                            v                                     v
                             +-----------------------------+       +-----------------------------+
                             |   Multi-Bitrate Renditions  |       |   Object Storage Sync       |
                             | (1080p, 720p, 480p, 360p)   |       |   (Local Disk / AWS S3)     |
@@ -1208,8 +1276,8 @@ export default function HomePage() {
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '16px' }}>
-              <div style={{ padding: '16px', borderRadius: '10px', background: 'rgba(15, 23, 42, 0.6)' }}>
-                <h4 style={{ fontSize: '14px', fontWeight: 700, color: '#818cf8', marginBottom: '6px' }}>
+              <div style={{ padding: '16px', borderRadius: '10px', background: 'var(--bg-inner)', border: '1px solid var(--border-color)' }}>
+                <h4 style={{ fontSize: '14px', fontWeight: 700, color: 'var(--primary)', marginBottom: '6px' }}>
                   1. Non-Blocking Ingestion
                 </h4>
                 <p style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
@@ -1218,8 +1286,8 @@ export default function HomePage() {
                 </p>
               </div>
 
-              <div style={{ padding: '16px', borderRadius: '10px', background: 'rgba(15, 23, 42, 0.6)' }}>
-                <h4 style={{ fontSize: '14px', fontWeight: 700, color: '#38bdf8', marginBottom: '6px' }}>
+              <div style={{ padding: '16px', borderRadius: '10px', background: 'var(--bg-inner)', border: '1px solid var(--border-color)' }}>
+                <h4 style={{ fontSize: '14px', fontWeight: 700, color: 'var(--accent)', marginBottom: '6px' }}>
                   2. Redis BullMQ Reliability
                 </h4>
                 <p style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
@@ -1228,8 +1296,8 @@ export default function HomePage() {
                 </p>
               </div>
 
-              <div style={{ padding: '16px', borderRadius: '10px', background: 'rgba(15, 23, 42, 0.6)' }}>
-                <h4 style={{ fontSize: '14px', fontWeight: 700, color: '#34d399', marginBottom: '6px' }}>
+              <div style={{ padding: '16px', borderRadius: '10px', background: 'var(--bg-inner)', border: '1px solid var(--border-color)' }}>
+                <h4 style={{ fontSize: '14px', fontWeight: 700, color: 'var(--success)', marginBottom: '6px' }}>
                   3. Production Media Packaging
                 </h4>
                 <p style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
@@ -1250,7 +1318,7 @@ export default function HomePage() {
           textAlign: 'center',
           fontSize: '12px',
           color: 'var(--text-dim)',
-          background: 'rgba(9, 13, 22, 0.9)',
+          background: 'var(--bg-secondary)',
         }}
       >
         <div style={{ maxWidth: '1400px', margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
