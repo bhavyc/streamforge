@@ -66,6 +66,7 @@ export async function processVideoJob(
       await TranscodingEngine.extractMp3(
         rawFilePath,
         outFilePath,
+        metadata.duration,
         toolOptions?.audioBitrate || '192k',
         (pct) => {
           job.updateProgress({

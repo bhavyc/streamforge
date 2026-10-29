@@ -19,6 +19,23 @@ export const RESOLUTION_PRESETS: ResolutionConfig[] = [
   { resolution: '360p',  width: 640,  height: 360,  bitrate: '600k',  audioBitrate: '64k' },
 ];
 
+function getProgressPercent(progress: any, totalDuration: number): number {
+  if (progress.percent && progress.percent > 0 && !isNaN(progress.percent)) {
+    return Math.min(100, Math.max(1, Math.round(progress.percent)));
+  }
+  if (progress.timemark && totalDuration > 0) {
+    const parts = progress.timemark.split(':');
+    if (parts.length === 3) {
+      const secs =
+        parseFloat(parts[0]) * 3600 +
+        parseFloat(parts[1]) * 60 +
+        parseFloat(parts[2]);
+      return Math.min(100, Math.max(1, Math.round((secs / totalDuration) * 100)));
+    }
+  }
+  return 0;
+}
+
 export class TranscodingEngine {
   /**
    * Transcode a single rendition with progress callback
@@ -129,12 +146,14 @@ export class TranscodingEngine {
     });
   }
 
+
   /**
    * 1-Click Audio Extraction to MP3
    */
   static extractMp3(
     inputPath: string,
     outputPath: string,
+    durationSec: number = 10,
     bitrate: string = '192k',
     onProgress?: (percent: number) => void
   ): Promise<void> {
@@ -145,7 +164,7 @@ export class TranscodingEngine {
         .audioBitrate(bitrate)
         .output(outputPath)
         .on('progress', (p) => {
-          if (p.percent && onProgress) onProgress(Math.min(100, Math.round(p.percent)));
+          if (onProgress) onProgress(getProgressPercent(p, durationSec));
         })
         .on('end', () => {
           if (onProgress) onProgress(100);
@@ -190,7 +209,7 @@ export class TranscodingEngine {
         .audioBitrate('96k')
         .output(outputPath)
         .on('progress', (p) => {
-          if (p.percent && onProgress) onProgress(Math.min(100, Math.round(p.percent)));
+          if (onProgress) onProgress(getProgressPercent(p, dur));
         })
         .on('end', () => {
           if (onProgress) onProgress(100);
@@ -202,7 +221,7 @@ export class TranscodingEngine {
   }
 
   /**
-   * Fast Video Trimmer / Cutter
+   * Fast Video Trimmer / Cutter (Instant stream copy in < 1 second)
    */
   static trimVideo(
     inputPath: string,
@@ -213,21 +232,37 @@ export class TranscodingEngine {
   ): Promise<void> {
     return new Promise((resolve, reject) => {
       const duration = Math.max(0.5, endSec - startSec);
+      if (onProgress) onProgress(35);
+
+      // Attempt 1: Instant stream copy (0.5s)
       ffmpeg(inputPath)
         .setStartTime(Math.max(0, startSec))
         .setDuration(duration)
-        .videoCodec('libx264')
-        .audioCodec('aac')
-        .outputOptions(['-preset veryfast', '-movflags +faststart'])
+        .outputOptions(['-c copy', '-avoid_negative_ts make_zero', '-movflags +faststart'])
         .output(outputPath)
-        .on('progress', (p) => {
-          if (p.percent && onProgress) onProgress(Math.min(100, Math.round(p.percent)));
-        })
         .on('end', () => {
           if (onProgress) onProgress(100);
           resolve();
         })
-        .on('error', (err) => reject(err))
+        .on('error', () => {
+          // Attempt 2: Re-encode fallback if copy fails
+          ffmpeg(inputPath)
+            .setStartTime(Math.max(0, startSec))
+            .setDuration(duration)
+            .videoCodec('libx264')
+            .audioCodec('aac')
+            .outputOptions(['-preset ultrafast', '-movflags +faststart', '-pix_fmt yuv420p'])
+            .output(outputPath)
+            .on('progress', (p) => {
+              if (onProgress) onProgress(getProgressPercent(p, duration));
+            })
+            .on('end', () => {
+              if (onProgress) onProgress(100);
+              resolve();
+            })
+            .on('error', (reErr) => reject(reErr))
+            .run();
+        })
         .run();
     });
   }
