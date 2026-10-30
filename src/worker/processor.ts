@@ -10,6 +10,7 @@ import { probeVideo } from '../lib/ffmpeg';
 import { StorageService } from '../lib/storage';
 import { TranscodingEngine, RESOLUTION_PRESETS } from './transcoder';
 import { CONFIG } from '../config/env';
+import { trackToolUsage } from '../lib/analytics';
 
 export interface JobLike {
   data: VideoProcessingJobData;
@@ -235,6 +236,13 @@ export async function processVideoJob(
 
     const processingTimeMs = Date.now() - startTime;
     console.log(`[Worker] Finished Consumer Tool ${tool} for Job ${jobId} in ${(processingTimeMs / 1000).toFixed(2)}s`);
+
+    // Track saved bandwidth/MB in analytics
+    const savedBytes = Math.max(0, metadata.sizeBytes - fileStats.size);
+    const savedMB = parseFloat((savedBytes / (1024 * 1024)).toFixed(2));
+    if (savedMB > 0) {
+      trackToolUsage(tool, savedMB).catch(() => {});
+    }
 
     return {
       jobId,

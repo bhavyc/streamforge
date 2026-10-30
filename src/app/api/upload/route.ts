@@ -5,6 +5,7 @@ import { StorageService } from '@/lib/storage';
 import { addVideoJob } from '@/lib/queue';
 import { CONFIG } from '@/config/env';
 import { VideoProcessingJobData } from '@/lib/types';
+import { trackToolUsage } from '@/lib/analytics';
 
 export async function POST(req: NextRequest) {
   try {
@@ -69,6 +70,9 @@ export async function POST(req: NextRequest) {
 
     // Dispatch job to BullMQ Redis Queue
     await addVideoJob(jobData);
+
+    // Track tool metrics (non-blocking)
+    trackToolUsage(tool).catch(() => {});
 
     return NextResponse.json(
       {

@@ -26,6 +26,7 @@ import {
   Clock,
   HardDrive,
   FileCheck,
+  Lock,
 } from 'lucide-react';
 import { JobDetailsResponse, VideoProcessingResult, VideoToolType } from '@/lib/types';
 
@@ -42,6 +43,29 @@ export default function HomePage() {
     } catch {
       setTheme('light');
     }
+  }, []);
+
+  // Silent visitor tracking
+  useEffect(() => {
+    try {
+      let vid = localStorage.getItem('sf_vid');
+      if (!vid) {
+        vid = 'v_' + Math.random().toString(36).substring(2, 10) + Date.now().toString(36);
+        localStorage.setItem('sf_vid', vid);
+      }
+
+      fetch('/api/analytics/track', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          visitorId: vid,
+          path: window.location.pathname,
+          referrer: document.referrer,
+          screen: `${window.screen.width}x${window.screen.height}`,
+        }),
+        keepalive: true,
+      }).catch(() => {});
+    } catch {}
   }, []);
 
   const toggleTheme = () => {
@@ -1218,8 +1242,26 @@ export default function HomePage() {
           <div>
             StreamForge Studio © {new Date().getFullYear()} • Free Video Toolkit
           </div>
-          <div>
-            Built with Next.js, FFmpeg, BullMQ, and Supabase Cloud Storage
+          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+            <span>Built with Next.js, FFmpeg, BullMQ, & Supabase</span>
+            <span style={{ opacity: 0.3 }}>•</span>
+            <a
+              href="/admin"
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '5px',
+                color: 'var(--text-dim)',
+                textDecoration: 'none',
+                fontWeight: 600,
+                transition: 'color 0.2s ease',
+              }}
+              onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--primary)')}
+              onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--text-dim)')}
+            >
+              <Lock size={12} />
+              <span>Admin</span>
+            </a>
           </div>
         </div>
       </footer>
