@@ -76,7 +76,7 @@ export default function AdminPage() {
 
   // Auth state
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
-  const [adminEmail, setAdminEmail] = useState('bhavyc888@gmail.com');
+  const [adminEmail, setAdminEmail] = useState('');
   const [adminPassword, setAdminPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loginLoading, setLoginLoading] = useState(false);
@@ -301,7 +301,7 @@ export default function AdminPage() {
                 required
                 value={adminEmail}
                 onChange={(e) => setAdminEmail(e.target.value)}
-                placeholder="bhavyc888@gmail.com"
+                placeholder="Enter admin email"
                 style={{
                   width: '100%',
                   padding: '12px 14px',
@@ -553,7 +553,7 @@ export default function AdminPage() {
               }}
             >
               <ShieldCheck size={14} color="var(--primary)" />
-              <span>bhavyc888@gmail.com</span>
+              <span>Admin Console</span>
             </div>
 
             {/* Refresh */}
